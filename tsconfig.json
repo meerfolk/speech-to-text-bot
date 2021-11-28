@@ -3,6 +3,8 @@
     "display": "Node 16",
 
     "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "./",
         "lib": ["es2021"],
         "module": "CommonJS",
         "target": "es2021",
