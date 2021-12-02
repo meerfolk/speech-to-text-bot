@@ -17,9 +17,9 @@ export class TsyringeDIContainer implements IDIContainer {
     }
 
     private configurationServiceFactory(): IConfigurationService {
-        const environment = process.env.NODE_ENV;
+        const useLocalConfiguration = process.env.USE_LOCAL_CONFIGURATION === 'true';
 
-        return new ConfigurationService(environment, './configuration');
+        return new ConfigurationService('./configuration', useLocalConfiguration);
     }
 
     private botServiceFactory(): IBotService {

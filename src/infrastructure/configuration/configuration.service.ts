@@ -5,7 +5,7 @@ import { IConfigurationService } from '../../domain/interfaces';
 export class ConfigurationService implements IConfigurationService {
     private configuration: Record<string, unknown> = {};
 
-    constructor(private readonly environment: string | undefined, private readonly fileDir: string) {
+    constructor(private readonly fileDir: string, private readonly useLocalConfiguration: boolean = false) {
         this.init();
     }
 
@@ -25,14 +25,18 @@ export class ConfigurationService implements IConfigurationService {
     private init(): void {
         /* eslint-disable @typescript-eslint/no-var-requires */
         const defaultConfiguration = this.readConfiguration(`${this.fileDir}/default.js`);
-        const environmentConfiguration = this.environment
-            ? this.readConfiguration(`${this.fileDir}/${this.environment}.js`)
-            : {};
+        const localConfiguration = this.useLocalConfiguration
+            ? this.readConfiguration(`${this.fileDir}/local.js`)
+            : null;
         /* eslint-enable @typescript-eslint/no-var-requires */
+
+        if (defaultConfiguration === null && localConfiguration === null) {
+            throw new Error('No configuration found');
+        }
 
         this.configuration = {
             ...(defaultConfiguration || {}),
-            ...(environmentConfiguration || {}),
+            ...(localConfiguration || {}),
         };
     }
 
