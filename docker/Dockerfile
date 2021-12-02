@@ -1,0 +1,15 @@
+FROM node:16.13.0-alpine3.12
+
+WORKDIR /app
+
+COPY ./package*.json ./
+
+ENV NODE_ENV=production
+
+RUN npm ci
+
+COPY ./configuration/default.js ./configuration/default.js
+
+COPY ./dist ./
+
+CMD ["node", "./main.js"]
