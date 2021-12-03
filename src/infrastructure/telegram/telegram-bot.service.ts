@@ -1,14 +1,11 @@
 import { IBotService , IHttpRequestService } from '../../domain/interfaces';
-import { UndiciService } from '../http/undici.service';
 
 export class TelegramBotService implements IBotService {
     private static TELEGRAM_BOT_URL = 'https://api.telegram.org/bot<token>';
 
     private readonly telegramBaseUrl: string;
-    private readonly httpRequestService: IHttpRequestService;
 
-    constructor(token: string) {
-        this.httpRequestService = new UndiciService();
+    constructor(token: string, private readonly httpRequestService: IHttpRequestService) {
         this.telegramBaseUrl = TelegramBotService.TELEGRAM_BOT_URL.replace('<token>', token);
     }
 
