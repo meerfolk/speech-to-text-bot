@@ -1,7 +1,7 @@
 import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
 import { IConfigurationService, IHttpRequestService } from '../../domain/interfaces';
-import { IBotService } from '../../domain/interfaces/bot-service.interface';
+import { IBotService } from '../../domain/bot';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
 

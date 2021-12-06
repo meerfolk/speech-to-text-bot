@@ -1,4 +1,5 @@
-import { IBotService , IHttpRequestService } from '../../domain/interfaces';
+import { IHttpRequestService } from '../../domain/interfaces';
+import { IBotService } from '../../domain/bot';
 import { TelegramBotApi } from './telegram-bot.api';
 
 export class TelegramBotService implements IBotService {
