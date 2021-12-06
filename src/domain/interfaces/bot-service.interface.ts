@@ -1,3 +1,3 @@
 export interface IBotService {
-    getUpdates: () => Promise<void>;
+    logUpdates: () => Promise<void>;
 }

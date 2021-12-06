@@ -6,6 +6,6 @@ import { diContainer } from './src/infrastructure/di-container';
 const telegramBotService = diContainer.get<IBotService>('BotService');
 
 (async function () {
-    await telegramBotService.getUpdates();
+    await telegramBotService.logUpdates();
 })();
 
