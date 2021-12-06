@@ -1,19 +1,16 @@
 import { IBotService , IHttpRequestService } from '../../domain/interfaces';
+import { TelegramBotApi } from './telegram-bot.api';
 
 export class TelegramBotService implements IBotService {
-    private static TELEGRAM_BOT_URL = 'https://api.telegram.org/bot<token>';
+    private readonly api: TelegramBotApi;
 
-    private readonly telegramBaseUrl: string;
-
-    constructor(token: string, private readonly httpRequestService: IHttpRequestService) {
-        this.telegramBaseUrl = TelegramBotService.TELEGRAM_BOT_URL.replace('<token>', token);
+    constructor(token: string, httpRequestService: IHttpRequestService) {
+        this.api = new TelegramBotApi( httpRequestService, token);
     }
 
-    public async getUpdates(): Promise<void> {
-        const url = `${this.telegramBaseUrl}/getUpdates`;
+    public async logUpdates(): Promise<void> {
+        const updates = await this.api.getUpdates();
 
-        const response = await this.httpRequestService.get(url);
-
-        console.log(JSON.stringify(response, null, 2));
+        console.log(JSON.stringify(updates, null, 2));
     }
 }
