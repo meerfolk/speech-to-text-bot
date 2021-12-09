@@ -2,6 +2,8 @@ import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
 import { IConfigurationService, IHttpRequestService } from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
+import { MessageService } from '../../domain/message/message.service';
+
 import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
 
@@ -35,6 +37,13 @@ export class TsyringeDIContainer implements IDIContainer {
         return new HttpRequestService();
     }
 
+    private messageServiceFactory(): MessageService {
+        const botService = this.container.resolve<IBotService>('BotService');
+        const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
+
+        return new MessageService(botService, configurationService.get('availableChatIds'));
+    }
+
     private init(): void {
         this.container.register<IConfigurationService>('ConfigurationService', {
             useValue: this.configurationServiceFactory(),
@@ -44,6 +53,9 @@ export class TsyringeDIContainer implements IDIContainer {
         });
         this.container.register<IBotService>('BotService', {
             useValue: this.botServiceFactory(),
+        });
+        this.container.register<MessageService>('MessageService', {
+            useValue: this.messageServiceFactory(),
         });
     }
 
