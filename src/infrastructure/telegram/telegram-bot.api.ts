@@ -2,6 +2,10 @@ import { IHttpRequestService } from '../../domain/interfaces/http-request.servic
 
 import { Update, UpdateResponseSchema } from './schemas/update.schema';
 
+interface ISendMessageOptions {
+    replyToMessageId?: number;
+}
+
 export class TelegramBotApi {
     private static TELEGRAM_BOT_URL = 'https://api.telegram.org/bot<token>';
 
@@ -14,8 +18,12 @@ export class TelegramBotApi {
         );
     }
 
+    private getUrl(method: string): string {
+        return `${this.telegramBaseUrl}/${method}`;
+    }
+
     public async getUpdates(): Promise<Array<Update>> {
-        const url = `${this.telegramBaseUrl}/getUpdates`;
+        const url = this.getUrl('getUpdates');
 
         const response = await this.httpRequestService.get(url);
 
@@ -26,5 +34,15 @@ export class TelegramBotApi {
         }
 
         return validation.data.result; 
+    }
+
+    public async sendMessage(message: string, chatId: number, options: ISendMessageOptions): Promise<void> {
+        const url = this.getUrl('sendMessage');
+
+        await this.httpRequestService.post(url, {
+            text: message,
+            chat_id: chatId,
+            reply_to_message_id: options?.replyToMessageId,
+        });
     }
 }

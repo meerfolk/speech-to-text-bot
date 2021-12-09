@@ -1,5 +1,5 @@
 import { IHttpRequestService } from '../../domain/interfaces';
-import { IBotService, AudioMessageModel } from '../../domain/bot';
+import { IBotService, AudioMessageModel, SendMessageModel } from '../../domain/bot';
 
 import { TelegramBotApi } from './telegram-bot.api';
 
@@ -30,5 +30,11 @@ export class TelegramBotService implements IBotService {
 
             return models;
         }, [] as Array<AudioMessageModel>);
+    }
+
+    public async sendMessage(message: SendMessageModel): Promise<void> {
+        return this.api.sendMessage(message.message, message.chatId, {
+            replyToMessageId: message.replyToMessageId,
+        });
     }
 }
