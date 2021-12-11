@@ -15,7 +15,7 @@ export class ConfigurationService implements IConfigurationService {
                 return null;
             }
 
-            return require(path.join(path.dirname(require.main.filename), filePath));
+            return require(path.join(process.cwd(), filePath));
         } catch (err) {
             console.error(err);
             return null;
