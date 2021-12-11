@@ -1,13 +1,13 @@
 import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
-import { IConfigurationService, IHttpRequestService } from '../../domain/interfaces';
+import { IConfigurationService, IHttpRequestService, ILoggerService } from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
 import { MessageService } from '../../domain/message';
 
 import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
-
 import { TelegramBotService } from '../telegram/telegram-bot.service';
+import { PinoLoggerService } from '../logger/pino-logger.service';
 
 import { IDIContainer } from './di-container.interface';
 
@@ -41,12 +41,16 @@ export class TsyringeDIContainer implements IDIContainer {
         const botService = this.container.resolve<IBotService>('BotService');
         const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
 
-        return new MessageService(botService, configurationService.get('availableChatIds'));
+    private loggerServiceFactory(): ILoggerService {
+        return new PinoLoggerService();
     }
 
     private init(): void {
         this.container.register<IConfigurationService>('ConfigurationService', {
             useValue: this.configurationServiceFactory(),
+        });
+        this.container.register<ILoggerService>('LoggerService', {
+            useValue: this.loggerServiceFactory(),
         });
         this.container.register('HttpRequestService', {
             useValue: this.httpRequestServiceFactory(),
