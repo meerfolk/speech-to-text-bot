@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { IBotService } from './src/domain/interfaces';
+import { IBotService } from './src/domain/bot';
 import { diContainer } from './src/infrastructure/di-container';
 
 const telegramBotService = diContainer.get<IBotService>('BotService');
