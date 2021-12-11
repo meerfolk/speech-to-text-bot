@@ -40,6 +40,14 @@ export class TsyringeDIContainer implements IDIContainer {
     private messageServiceFactory(): MessageService {
         const botService = this.container.resolve<IBotService>('BotService');
         const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
+        const loggerService = this.container.resolve<ILoggerService>('LoggerService');
+
+        return new MessageService(
+            botService,
+            configurationService.get('availableChatIds'),
+            loggerService,
+        );
+    }
 
     private loggerServiceFactory(): ILoggerService {
         return new PinoLoggerService();
