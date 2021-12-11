@@ -1,9 +1,14 @@
+import { ILoggerService } from '../interfaces';
 import { IBotService, SendMessageModel } from '../bot';
 
 export class MessageService {
     private readonly messageIdsSet = new Set();
 
-    constructor(private readonly botService: IBotService, private readonly availableChatIds: Array<number>) {}
+    constructor(
+        private readonly botService: IBotService,
+        private readonly availableChatIds: Array<number>,
+        private readonly logger: ILoggerService,
+    ) {}
 
     public async handleAudioMessages(): Promise<void> {
         const audioMessages = await this.botService.getAudioMessages();
@@ -18,11 +23,12 @@ export class MessageService {
 
             try {
                 await this.botService.sendMessage(sendMessage);
-            } catch (err) {
-                console.error(err);
-            }
+                this.messageIdsSet.add(message.messageId);
 
-            this.messageIdsSet.add(message.messageId);
+                this.logger.info(`${message.messageId} handled`);
+            } catch (err) {
+                this.logger.error(err as Error);
+            }
         }));
     }
 }
