@@ -2,7 +2,7 @@ import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
 import { IConfigurationService, IHttpRequestService } from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
-import { MessageService } from '../../domain/message/message.service';
+import { MessageService } from '../../domain/message';
 
 import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
@@ -22,7 +22,7 @@ export class TsyringeDIContainer implements IDIContainer {
     private configurationServiceFactory(): IConfigurationService {
         const useLocalConfiguration = process.env.USE_LOCAL_CONFIGURATION === 'true';
 
-        return new ConfigurationService('./configuration', useLocalConfiguration);
+        return new ConfigurationService('configuration', useLocalConfiguration);
     }
 
     private botServiceFactory(): IBotService {
