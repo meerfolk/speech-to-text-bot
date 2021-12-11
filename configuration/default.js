@@ -5,5 +5,6 @@ module.exports = {
     telegram: {
         token: process.env.TELEGRAM_TOKEN,
     },
-    availableChatIds: [],
+    availableChatIds: JSON.parse(process.env.AVAILABLE_CHAT_IDS || '[]'),
+    workerInterval: 5 * 60 * 1000,
 };
