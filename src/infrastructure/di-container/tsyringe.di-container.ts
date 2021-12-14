@@ -1,6 +1,6 @@
 import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
-import { IConfigurationService, IHttpRequestService, ILoggerService } from '../../domain/interfaces';
+import { IConfigurationService, IHttpRequestService, ILoggerService, IUploadService } from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
 import { MessageService } from '../../domain/message';
 
@@ -8,6 +8,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
 import { TelegramBotService } from '../telegram/telegram-bot.service';
 import { PinoLoggerService } from '../logger/pino-logger.service';
+import { AzureUploadService } from '../upload';
 
 import { IDIContainer } from './di-container.interface';
 
@@ -53,6 +54,13 @@ export class TsyringeDIContainer implements IDIContainer {
         return new PinoLoggerService();
     }
 
+    private uploadServiceFactory(): IUploadService {
+        const loggerService = this.container.resolve<ILoggerService>('LoggerService');
+        const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
+
+        return new AzureUploadService(loggerService, configurationService.get('cloud.azure.storage'));
+    }
+
     private init(): void {
         this.container.register<IConfigurationService>('ConfigurationService', {
             useValue: this.configurationServiceFactory(),
@@ -68,6 +76,9 @@ export class TsyringeDIContainer implements IDIContainer {
         });
         this.container.register<MessageService>('MessageService', {
             useValue: this.messageServiceFactory(),
+        });
+        this.container.register<IUploadService>('UploadService', {
+            useValue: this.uploadServiceFactory(),
         });
     }
 
