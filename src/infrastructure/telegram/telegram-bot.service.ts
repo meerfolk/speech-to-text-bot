@@ -37,4 +37,8 @@ export class TelegramBotService implements IBotService {
             replyToMessageId: message.replyToMessageId,
         });
     }
+
+    public async downloadAudioFile(model: AudioMessageModel): Promise<Buffer> {
+        return this.api.getFile(model.fileId);
+    }
 }
