@@ -4,19 +4,24 @@ import { IHttpRequestService } from '../../domain/interfaces';
 
 export class HttpRequestService implements IHttpRequestService {
     public async get(url: string): Promise<unknown> {
-        const result: string = await new Promise<string>((resolve, reject) => {
+        const buffer = await this.getBuffer(url);
+
+        const result = buffer.toString('utf8');
+
+        return JSON.parse(result);
+    }
+
+    public async getBuffer(url: string): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
             const req = request(url, (res) => {
                 res.on('data', (data: Buffer) => {
-                    resolve(data.toString('utf8'));
+                    resolve(data);
                 });
             });
 
             req.on('error', reject);
             req.end();
         });
-
-
-        return JSON.parse(result);
     }
 
     public async post(url: string, body?: object): Promise<unknown> {
