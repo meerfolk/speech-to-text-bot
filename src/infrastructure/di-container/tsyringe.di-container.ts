@@ -1,6 +1,12 @@
 import { DependencyContainer, container as tsyringeContainer } from 'tsyringe';
 
-import { IConfigurationService, IHttpRequestService, ILoggerService, IUploadService } from '../../domain/interfaces';
+import {
+    IConfigurationService,
+    IHttpRequestService,
+    ILoggerService,
+    IUploadService,
+    INameGeneratorService,
+} from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
 import { MessageService } from '../../domain/message';
 
@@ -9,6 +15,7 @@ import { HttpRequestService } from '../http/http-request.service';
 import { TelegramBotService } from '../telegram/telegram-bot.service';
 import { PinoLoggerService } from '../logger/pino-logger.service';
 import { AzureUploadService } from '../upload';
+import { UUIDNameGeneratorService } from '../name-generator';
 
 import { IDIContainer } from './di-container.interface';
 
@@ -42,11 +49,15 @@ export class TsyringeDIContainer implements IDIContainer {
         const botService = this.container.resolve<IBotService>('BotService');
         const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
         const loggerService = this.container.resolve<ILoggerService>('LoggerService');
+        const uploadService = this.container.resolve<IUploadService>('UploadService');
+        const namgeGeneratorService = this.container.resolve<INameGeneratorService>('NameGeneratorService');
 
         return new MessageService(
             botService,
             configurationService.get('availableChatIds'),
             loggerService,
+            uploadService,
+            namgeGeneratorService,
         );
     }
 
@@ -61,6 +72,10 @@ export class TsyringeDIContainer implements IDIContainer {
         return new AzureUploadService(loggerService, configurationService.get('cloud.azure.storage'));
     }
 
+    private nameGeneratorServiceFactory(): INameGeneratorService {
+        return new UUIDNameGeneratorService();
+    }
+
     private init(): void {
         this.container.register<IConfigurationService>('ConfigurationService', {
             useValue: this.configurationServiceFactory(),
@@ -68,17 +83,20 @@ export class TsyringeDIContainer implements IDIContainer {
         this.container.register<ILoggerService>('LoggerService', {
             useValue: this.loggerServiceFactory(),
         });
-        this.container.register('HttpRequestService', {
+        this.container.register<INameGeneratorService>('NameGeneratorService', {
+            useValue: this.nameGeneratorServiceFactory(),
+        });
+        this.container.register<IHttpRequestService>('HttpRequestService', {
             useValue: this.httpRequestServiceFactory(),
         });
         this.container.register<IBotService>('BotService', {
             useValue: this.botServiceFactory(),
         });
-        this.container.register<MessageService>('MessageService', {
-            useValue: this.messageServiceFactory(),
-        });
         this.container.register<IUploadService>('UploadService', {
             useValue: this.uploadServiceFactory(),
+        });
+        this.container.register<MessageService>('MessageService', {
+            useValue: this.messageServiceFactory(),
         });
     }
 

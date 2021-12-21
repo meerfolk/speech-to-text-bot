@@ -1,4 +1,4 @@
-import { ILoggerService } from '../interfaces';
+import { ILoggerService, IUploadService, INameGeneratorService } from '../interfaces';
 import { IBotService, SendMessageModel } from '../bot';
 
 export class MessageService {
@@ -8,6 +8,8 @@ export class MessageService {
         private readonly botService: IBotService,
         private readonly availableChatIds: Array<number>,
         private readonly logger: ILoggerService,
+        private readonly uploadService: IUploadService,
+        private readonly namgeGeneratorService: INameGeneratorService,
     ) {}
 
     public async handleAudioMessages(): Promise<void> {
@@ -19,16 +21,26 @@ export class MessageService {
         });
 
         await Promise.all(filteredAudioMessages.map(async (message) => {
-            const sendMessage = new SendMessageModel('Message handled', message.chatId, message.messageId);
-
+            let text: null | string = null;
             try {
-                await this.botService.sendMessage(sendMessage);
+                this.logger.info(`Processing ${message.messageId}`);
                 this.messageIdsSet.add(message.messageId);
 
-                this.logger.info(`${message.messageId} handled`);
+                const file = await this.botService.downloadAudioFile(message);
+
+                const fileName = this.namgeGeneratorService.generate();
+                await this.uploadService.upload(fileName, file);
+
+                text = `File uploaded. Name: ${fileName}`;
             } catch (err) {
                 this.logger.error(err as Error);
+                this.messageIdsSet.delete(message.messageId);
+
+                text = 'Failed to handle message';
             }
+
+            const sendMessage = new SendMessageModel(text, message.chatId, message.messageId);
+            await this.botService.sendMessage(sendMessage);
         }));
     }
 }

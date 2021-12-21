@@ -1,6 +1,6 @@
 import { IHttpRequestService } from '../../domain/interfaces/http-request.service.interface';
 
-import { Update, UpdateResponseSchema } from './schemas/update.schema';
+import { Update, UpdateResponseSchema, FileResponseSchema } from './schemas';
 
 interface ISendMessageOptions {
     replyToMessageId?: number;
@@ -8,18 +8,30 @@ interface ISendMessageOptions {
 
 export class TelegramBotApi {
     private static TELEGRAM_BOT_URL = 'https://api.telegram.org/bot<token>';
+    private static TELEGRAM_FILE_URL =  'https://api.telegram.org/file/bot<token>';
 
-    private readonly telegramBaseUrl: string;
+    private readonly telegramBotBaseUrl: string;
+    private readonly telegramFileBaseUrl: string;
 
     constructor(private readonly httpRequestService: IHttpRequestService, token: string) {
-        this.telegramBaseUrl = TelegramBotApi.TELEGRAM_BOT_URL.replace(
+        this.telegramBotBaseUrl = TelegramBotApi.TELEGRAM_BOT_URL.replace(
+            '<token>',
+            token,
+        );
+        this.telegramFileBaseUrl = TelegramBotApi.TELEGRAM_FILE_URL.replace(
             '<token>',
             token,
         );
     }
 
     private getUrl(method: string): string {
-        return `${this.telegramBaseUrl}/${method}`;
+        return `${this.telegramBotBaseUrl}/${method}`;
+    }
+
+    private async getFileBuffer(filePath: string): Promise<Buffer> {
+        const url = `${this.telegramFileBaseUrl}/${filePath}`;
+
+        return this.httpRequestService.getBuffer(url);
     }
 
     public async getUpdates(): Promise<Array<Update>> {
@@ -45,4 +57,19 @@ export class TelegramBotApi {
             reply_to_message_id: options?.replyToMessageId,
         });
     }
+
+    public async getFile(fileId: string): Promise<Buffer> {
+        const url = this.getUrl(`getFile?file_id=${fileId}`);
+
+        const response = await this.httpRequestService.get(url);
+
+        const validation = FileResponseSchema.safeParse(response);
+
+        if (validation.success === false) {
+            throw validation.error;
+        }
+
+        return this.getFileBuffer(validation.data.result.file_path);
+    }
+
 }
