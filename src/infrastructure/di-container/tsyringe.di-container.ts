@@ -9,15 +9,17 @@ import {
 import { IBotService } from '../../domain/bot';
 import { IUploadService } from '../../domain/upload';
 import { MessageService } from '../../domain/message';
+import { ISpeechService } from '../../domain/speech';
 
 import { ConfigurationService } from '../configuration/configuration.service';
 import { HttpRequestService } from '../http/http-request.service';
 import { TelegramBotService } from '../telegram/telegram-bot.service';
 import { PinoLoggerService } from '../logger/pino-logger.service';
-import { AzureUploadService } from '../upload';
+import { AzureUploadService, IAzureStorageOptions } from '../upload';
 import { UUIDNameGeneratorService } from '../name-generator';
 
 import { IDIContainer } from './di-container.interface';
+import { AzureCognitiveService, IAzureCognitiveOptions } from '../speech';
 
 export class TsyringeDIContainer implements IDIContainer {
     private readonly container: DependencyContainer;
@@ -76,6 +78,20 @@ export class TsyringeDIContainer implements IDIContainer {
         return new UUIDNameGeneratorService();
     }
 
+    private speechServiceFactory(): ISpeechService {
+        const httpRequestService = this.container.resolve<IHttpRequestService>('HttpRequestService');
+        const configurationService = this.container.resolve<IConfigurationService>('ConfigurationService');
+        const azureStorageOptions = configurationService.get<IAzureStorageOptions>('cloud.azure.storage');
+        const azureCognitiveServiceOptions = configurationService.get<IAzureCognitiveOptions>('cloud.azure.cognitive');
+
+        return new AzureCognitiveService(httpRequestService, {
+            ...azureCognitiveServiceOptions,
+            storage: {
+                ...azureStorageOptions,
+            },
+        });
+    }
+
     private init(): void {
         this.container.register<IConfigurationService>('ConfigurationService', {
             useValue: this.configurationServiceFactory(),
@@ -97,6 +113,9 @@ export class TsyringeDIContainer implements IDIContainer {
         });
         this.container.register<MessageService>('MessageService', {
             useValue: this.messageServiceFactory(),
+        });
+        this.container.register<ISpeechService>('SpeechService', {
+            useValue: this.speechServiceFactory(),
         });
     }
 
