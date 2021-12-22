@@ -16,7 +16,7 @@ type CognitiveServiceBoydType = {
     };
 };
 
-interface IOptions {
+export interface IAzureCognitiveOptions {
     region: string;
     subscriptionKey: string;
     locale: string;
@@ -32,7 +32,7 @@ export class AzureCognitiveService implements ISpeechService {
     private static BLOB_STORAGE_TEMPLATE = 'https://{account}.blob.core.windows.net{sas}';
     private static BLOB_STORAGE_FILE_TEMPLATE = 'https://{account}.blob.core.windows.net/{container}/{file}{sas}';
 
-    constructor(private readonly httpRequestService: IHttpRequestService, private readonly options: IOptions) {}
+    constructor(private readonly httpRequestService: IHttpRequestService, private readonly options: IAzureCognitiveOptions) {}
 
     private getCognitiveServiceUrl(): string {
         return AzureCognitiveService.COGNITIVE_SERVICE_TEMPLATE

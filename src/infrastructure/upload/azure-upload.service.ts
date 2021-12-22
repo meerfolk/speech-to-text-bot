@@ -3,7 +3,7 @@ import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import { ILoggerService } from '../../domain/interfaces';
 import { IUploadService, UploadFileModel } from '../../domain/upload';
 
-export interface IAzureOptions {
+export interface IAzureStorageOptions {
     sas: string;
     account: string;
     container: string;
@@ -15,7 +15,7 @@ export class AzureUploadService implements IUploadService {
 
     constructor(
         private readonly logger: ILoggerService,
-        private readonly options: IAzureOptions,
+        private readonly options: IAzureStorageOptions,
     ) {}
 
     private getBlobStorageUrl(): string {
