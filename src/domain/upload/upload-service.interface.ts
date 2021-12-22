@@ -1,3 +1,5 @@
+import { UploadFileModel } from './models/upload-file.model';
+
 export interface IUploadService {
-    upload: (name: string, file: Buffer) => Promise<void>;
+    upload: (name: string, file: Buffer) => Promise<UploadFileModel>;
 }
