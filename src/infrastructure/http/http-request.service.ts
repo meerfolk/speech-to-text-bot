@@ -1,3 +1,4 @@
+import { IncomingMessage } from 'http';
 import { request } from 'https';
 
 import { IHttpRequestService, IPostOptions } from '../../domain/interfaces';
@@ -38,7 +39,14 @@ export class HttpRequestService implements IHttpRequestService {
     }
 
     public async post(url: string, body?: object, options?: IPostOptions): Promise<unknown> {
-        const result: string = await new Promise<string>((resolve, reject) => {
+        const [_response, data] = await this.postRaw(url, body, options);
+
+        return data;
+    }
+
+    public async postRaw(url: string, body?: object, options?: IPostOptions): Promise<[IncomingMessage, unknown]> {
+        return new Promise<[IncomingMessage, unknown]>((resolve, reject) => {
+            const chunks: Array<Buffer> = [];
             const req = request(
                 url,
                 {
@@ -47,7 +55,13 @@ export class HttpRequestService implements IHttpRequestService {
                 },
                 (res) => {
                     res.on('data', (data: Buffer) => {
-                        resolve(data.toString('utf8'));
+                        chunks.push(data);
+                    });
+                    res.on('end', () => {
+                        const bodyStr = Buffer.concat(chunks).toString('utf8');
+                        const body = bodyStr ? JSON.parse(bodyStr) : {};
+
+                        resolve([res, body]);
                     });
                 },
             );
@@ -60,9 +74,5 @@ export class HttpRequestService implements IHttpRequestService {
 
             req.end();
         });
-
-
-        return JSON.parse(result);
-
     }
 }
