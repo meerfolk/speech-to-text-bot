@@ -7,6 +7,7 @@ export interface IAzureStorageOptions {
     sas: string;
     account: string;
     container: string;
+    container_sas: string;
 }
 
 export class AzureUploadService implements IUploadService {
