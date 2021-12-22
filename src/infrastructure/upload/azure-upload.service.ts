@@ -1,6 +1,7 @@
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 
-import { IUploadService, ILoggerService } from '../../domain/interfaces';
+import { ILoggerService } from '../../domain/interfaces';
+import { IUploadService } from '../../domain/upload';
 
 export interface IAzureOptions {
     sas: string;

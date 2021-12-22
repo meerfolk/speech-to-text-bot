@@ -1,5 +1,6 @@
-import { ILoggerService, IUploadService, INameGeneratorService } from '../interfaces';
+import { ILoggerService, INameGeneratorService } from '../interfaces';
 import { IBotService, SendMessageModel } from '../bot';
+import { IUploadService } from '../upload';
 
 export class MessageService {
     private readonly messageIdsSet = new Set();

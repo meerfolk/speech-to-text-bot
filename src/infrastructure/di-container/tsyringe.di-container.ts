@@ -4,10 +4,10 @@ import {
     IConfigurationService,
     IHttpRequestService,
     ILoggerService,
-    IUploadService,
     INameGeneratorService,
 } from '../../domain/interfaces';
 import { IBotService } from '../../domain/bot';
+import { IUploadService } from '../../domain/upload';
 import { MessageService } from '../../domain/message';
 
 import { ConfigurationService } from '../configuration/configuration.service';
