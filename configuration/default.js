@@ -13,7 +13,13 @@ module.exports = {
                 account: process.env.AZURE_STORAGE_ACCOUNT,
                 sas: process.env.AZURE_STORAGE_SAS,
                 container: process.env.AZURE_STORAGE_CONTAINER,
-            }
+                container_sas: process.env.AZURE_CONTAINER_SAS,
+            },
+            cognitive: {
+                region: process.env.AZURE_COGNITIVE_REGION,
+                subscriptionKey: process.env.AZURE_COGNITIVE_SUBSCRIPTION_KEY,
+                locale: process.env.AZURE_COGNITIVE_LOCALE,
+            },
         }
     }
 };
