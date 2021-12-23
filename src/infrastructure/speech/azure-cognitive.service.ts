@@ -1,6 +1,8 @@
 import { ISpeechService } from '../../domain/speech';
 import { UploadFileModel } from '../../domain/upload';
 import { IHttpRequestService } from '../../domain/interfaces';
+import { SpeechRecognitionModel } from '../../domain/speech';
+import { IAzureStorageOptions } from '../upload';
 
 type CognitiveServiceBoydType = {
     RecordingsUrl: string;
@@ -20,11 +22,7 @@ export interface IAzureCognitiveOptions {
     region: string;
     subscriptionKey: string;
     locale: string;
-    storage: {
-        container: string;
-        sas: string;
-        account: string;
-    };
+    storage: IAzureStorageOptions;
 }
 
 export class AzureCognitiveService implements ISpeechService {
@@ -42,7 +40,7 @@ export class AzureCognitiveService implements ISpeechService {
     private getBlobStorageUrl(): string {
         return AzureCognitiveService.BLOB_STORAGE_TEMPLATE
             .replace('{account}', this.options.storage.account)
-            .replace('{sas}', this.options.storage.sas);
+            .replace('{sas}', this.options.storage.container_sas);
     }
 
     private getFileUrl(fileName: string): string {
@@ -69,15 +67,23 @@ export class AzureCognitiveService implements ISpeechService {
         };
     }
 
-    public async toText(model: UploadFileModel): Promise<void> {
+    public async toText(model: UploadFileModel): Promise<SpeechRecognitionModel | null> {
         const url = this.getCognitiveServiceUrl();
         const body = this.generateBody(model.name);
 
-        const location = await this.httpRequestService.post(url, body, {
+        const [response] = await this.httpRequestService.postRaw(url, body, {
             headers: {
                 'Ocp-Apim-Subscription-Key': this.options.subscriptionKey,
             }
         });
-        console.log(location);
+
+        const location = response.headers?.location;
+
+        if (location) {
+            const uid = location.split('/').splice(-1)[0];
+            return new SpeechRecognitionModel(uid);
+        }
+
+        return null;
     }
 }
