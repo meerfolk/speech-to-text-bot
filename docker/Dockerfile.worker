@@ -1,4 +1,6 @@
-FROM node:16.13.0-alpine3.12
+# syntax=docker/dockerfile:1
+
+FROM node:16.13.0-alpine3.12 AS base
 
 WORKDIR /app
 
@@ -8,8 +10,20 @@ ENV NODE_ENV=production
 
 RUN npm ci
 
+FROM node:16.13.0-alpine3.12 AS build
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm ci
+
+RUN npm run build
+
+FROM base AS app
+
 COPY ./configuration/default.js ./configuration/default.js
 
-COPY ./dist ./
+COPY --from=build app/dist ./
 
 CMD ["node", "./src/presentation/worker.js"]
