@@ -53,6 +53,7 @@ export class TsyringeDIContainer implements IDIContainer {
         const loggerService = this.container.resolve<ILoggerService>('LoggerService');
         const uploadService = this.container.resolve<IUploadService>('UploadService');
         const namgeGeneratorService = this.container.resolve<INameGeneratorService>('NameGeneratorService');
+        const speechService = this.container.resolve<ISpeechService>('SpeechService');
 
         return new MessageService(
             botService,
@@ -60,6 +61,7 @@ export class TsyringeDIContainer implements IDIContainer {
             loggerService,
             uploadService,
             namgeGeneratorService,
+            speechService,
         );
     }
 
@@ -111,11 +113,11 @@ export class TsyringeDIContainer implements IDIContainer {
         this.container.register<IUploadService>('UploadService', {
             useValue: this.uploadServiceFactory(),
         });
-        this.container.register<MessageService>('MessageService', {
-            useValue: this.messageServiceFactory(),
-        });
         this.container.register<ISpeechService>('SpeechService', {
             useValue: this.speechServiceFactory(),
+        });
+        this.container.register<MessageService>('MessageService', {
+            useValue: this.messageServiceFactory(),
         });
     }
 
