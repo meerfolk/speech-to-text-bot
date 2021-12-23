@@ -1,6 +1,7 @@
 import { ILoggerService, INameGeneratorService } from '../interfaces';
 import { IBotService, SendMessageModel } from '../bot';
 import { IUploadService } from '../upload';
+import { ISpeechService } from '../speech';
 
 export class MessageService {
     private readonly messageIdsSet = new Set();
@@ -11,6 +12,7 @@ export class MessageService {
         private readonly logger: ILoggerService,
         private readonly uploadService: IUploadService,
         private readonly namgeGeneratorService: INameGeneratorService,
+        private readonly speechService: ISpeechService,
     ) {}
 
     public async handleAudioMessages(): Promise<void> {
@@ -30,9 +32,11 @@ export class MessageService {
                 const file = await this.botService.downloadAudioFile(message);
 
                 const fileName = this.namgeGeneratorService.generate();
-                await this.uploadService.upload(fileName, file);
+                const uploadFileModel = await this.uploadService.upload(fileName, file);
 
-                text = `File uploaded. Name: ${fileName}`;
+                const speechRecognitionModel = await this.speechService.toText(uploadFileModel);
+
+                text = `File uploaded. Name: ${fileName}. Recognition ${speechRecognitionModel?.recognitionId || ''} started`;
             } catch (err) {
                 this.logger.error(err as Error);
                 this.messageIdsSet.delete(message.messageId);
