@@ -4,6 +4,6 @@ import { INameGeneratorService } from '../../domain/interfaces';
 
 export class UUIDNameGeneratorService implements INameGeneratorService {
     public generate(): string {
-        return uuid();
+        return `${uuid()}.mp3`;
     } 
 }
