@@ -3,15 +3,16 @@ import { request } from 'https';
 
 import { IHttpRequestService, IPostOptions } from '../../domain/interfaces';
 
+type Methods = 'GET' | 'POST';
+
+interface IRequestOptions {
+    method: Methods;
+    url: string;
+    headers?: Record<string, string>;
+    body?: object;
+}
+
 export class HttpRequestService implements IHttpRequestService {
-    public async get(url: string): Promise<unknown> {
-        const buffer = await this.getBuffer(url);
-
-        const result = buffer.toString('utf8');
-
-        return JSON.parse(result);
-    }
-
     private generatePostHeaders(headers?: Record<string, string>): Record<string, string> {
         return {
             'Content-Type': 'application/json',
@@ -19,23 +20,62 @@ export class HttpRequestService implements IHttpRequestService {
         };
     }
 
-    public async getBuffer(url: string): Promise<Buffer> {
-        const chunks: Array<Buffer> = [];
+    private requestRaw(options: IRequestOptions): Promise<[IncomingMessage, Buffer]> {
+        const chunks: Array<Buffer> = []; 
+        const { method, url, body, headers } = options;
 
         return new Promise((resolve, reject) => {
-            const req = request(url, (res) => {
-                res
-                    .on('data', (data: Buffer) => {
-                        chunks.push(data);
-                    })
-                    .on('end', () => {
-                        resolve(Buffer.concat(chunks));
+            const req = request(
+                url,
+                {
+                    method,
+                    headers: headers ?? {},
+                },
+                (res) => {
+                    res.on('data', (chunk: Buffer) => {
+                        chunks.push(chunk);
                     });
-            });
+
+                    res.on('end', () => {
+                        const buffer = Buffer.concat(chunks);
+
+                        if ((res.statusCode ?? 500) > 400) {
+                            reject(new Error(`${method} ${url} request was failed`));
+                            return;
+                        }
+
+                        resolve([res, buffer]);
+                    });
+                }
+            );
+
+            if (body !== undefined) {
+                req.write(JSON.stringify(body));
+            }
 
             req.on('error', reject);
             req.end();
         });
+    }
+
+    public async get(url: string): Promise<unknown> {
+        const [_response, buffer] = await this.requestRaw({
+            url,
+            method: 'GET',
+        });
+
+        const result = buffer.toString('utf8');
+
+        return JSON.parse(result);
+    }
+
+    public async getBuffer(url: string): Promise<Buffer> {
+        const [_, buffer] = await this.requestRaw({
+            url,
+            method: 'GET',
+        });
+
+        return buffer;
     }
 
     public async post(url: string, body?: object, options?: IPostOptions): Promise<unknown> {
@@ -45,34 +85,15 @@ export class HttpRequestService implements IHttpRequestService {
     }
 
     public async postRaw(url: string, body?: object, options?: IPostOptions): Promise<[IncomingMessage, unknown]> {
-        return new Promise<[IncomingMessage, unknown]>((resolve, reject) => {
-            const chunks: Array<Buffer> = [];
-            const req = request(
-                url,
-                {
-                    method: 'POST',
-                    headers: this.generatePostHeaders(options?.headers),
-                },
-                (res) => {
-                    res.on('data', (data: Buffer) => {
-                        chunks.push(data);
-                    });
-                    res.on('end', () => {
-                        const bodyStr = Buffer.concat(chunks).toString('utf8');
-                        const body = bodyStr ? JSON.parse(bodyStr) : {};
-
-                        resolve([res, body]);
-                    });
-                },
-            );
-
-            req.on('error', reject);
-
-            if (body) {
-                req.write(JSON.stringify(body));
-            }
-
-            req.end();
+        const [response, buffer] = await this.requestRaw({
+            url,
+            method: 'POST',
+            body,
+            headers: this.generatePostHeaders(options?.headers),
         });
+
+        const data = buffer.toString('utf8');
+
+        return [response, JSON.parse(data)];
     }
 }
