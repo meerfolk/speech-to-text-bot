@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { request } from 'https';
 
-import { IHttpRequestService, IPostOptions } from '../../domain/interfaces';
+import { IHttpRequestService, ILoggerService, IPostOptions } from '../../domain/interfaces';
 
 type Methods = 'GET' | 'POST';
 
@@ -13,11 +13,17 @@ interface IRequestOptions {
 }
 
 export class HttpRequestService implements IHttpRequestService {
+    constructor(private readonly logger: ILoggerService) {}
+
     private generatePostHeaders(headers?: Record<string, string>): Record<string, string> {
         return {
             'Content-Type': 'application/json',
             ...(headers ?? {}),
         };
+    }
+
+    private bufferToObj(buffer: Buffer): object {
+        return JSON.parse(buffer.toString('utf8'));
     }
 
     private requestRaw(options: IRequestOptions): Promise<[IncomingMessage, Buffer]> {
@@ -39,8 +45,15 @@ export class HttpRequestService implements IHttpRequestService {
                     res.on('end', () => {
                         const buffer = Buffer.concat(chunks);
 
-                        if ((res.statusCode ?? 500) > 400) {
-                            reject(new Error(`${method} ${url} request was failed`));
+                        if ((res.statusCode ?? 500) >= 400) {
+                            const body = this.bufferToObj(buffer);
+                            const message = `${method} ${url} request was failed`;
+
+                            this.logger.info(
+                                { body, status: res.statusCode },
+                                message,
+                            );
+                            reject(new Error(message));
                             return;
                         }
 
@@ -64,9 +77,7 @@ export class HttpRequestService implements IHttpRequestService {
             method: 'GET',
         });
 
-        const result = buffer.toString('utf8');
-
-        return JSON.parse(result);
+        return this.bufferToObj(buffer);
     }
 
     public async getBuffer(url: string): Promise<Buffer> {
@@ -92,8 +103,6 @@ export class HttpRequestService implements IHttpRequestService {
             headers: this.generatePostHeaders(options?.headers),
         });
 
-        const data = buffer.toString('utf8');
-
-        return [response, JSON.parse(data)];
+        return [response, this.bufferToObj(buffer)];
     }
 }
