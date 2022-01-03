@@ -44,7 +44,9 @@ export class TsyringeDIContainer implements IDIContainer {
     }
 
     private httpRequestServiceFactory(): IHttpRequestService {
-        return new HttpRequestService();
+        const loggerService = this.container.resolve<ILoggerService>('LoggerService');
+
+        return new HttpRequestService(loggerService);
     }
 
     private messageServiceFactory(): MessageService {
