@@ -9,8 +9,8 @@ export class PinoLoggerService implements ILoggerService {
         this.logger = pino();
     }
 
-    public info(message: string): void {
-        this.logger.info(message);
+    public info(message: unknown, msg?: string): void {
+        this.logger.info(message, msg);
     }
 
     public error(error: Error): void {
