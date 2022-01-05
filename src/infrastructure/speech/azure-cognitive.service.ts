@@ -4,7 +4,9 @@ import { IHttpRequestService } from '../../domain/interfaces';
 import { SpeechRecognitionModel } from '../../domain/speech';
 import { IAzureStorageOptions } from '../upload';
 
-type CognitiveServiceBoydType = {
+import { BaseSpeechService } from './base-speech.service';
+
+type CognitiveServiceBodyType = {
     RecordingsUrl: string;
     Locale: string;
     Name: string;
@@ -25,16 +27,14 @@ export interface IAzureCognitiveOptions {
     storage: IAzureStorageOptions;
 }
 
-export class AzureCognitiveService implements ISpeechService {
+export class AzureCognitiveService extends BaseSpeechService<CognitiveServiceBodyType>
+    implements ISpeechService {
     private static COGNITIVE_SERVICE_TEMPLATE = 'https://{region}.cris.ai/api/speechtotext/v2.0/Transcriptions';
     private static BLOB_STORAGE_TEMPLATE = 'https://{account}.blob.core.windows.net{sas}';
     private static BLOB_STORAGE_FILE_TEMPLATE = 'https://{account}.blob.core.windows.net/{container}/{file}{sas}';
 
-    constructor(private readonly httpRequestService: IHttpRequestService, private readonly options: IAzureCognitiveOptions) {}
-
-    private getCognitiveServiceUrl(): string {
-        return AzureCognitiveService.COGNITIVE_SERVICE_TEMPLATE
-            .replace('{region}', this.options.region);
+    constructor(httpRequestService: IHttpRequestService, private readonly options: IAzureCognitiveOptions) {
+        super(httpRequestService);
     }
 
     private getBlobStorageUrl(): string {
@@ -51,7 +51,12 @@ export class AzureCognitiveService implements ISpeechService {
             .replace('{sas}', this.options.storage.sas);
     }
 
-    private generateBody(fileName: string): CognitiveServiceBoydType {
+    protected getServiceUrl(): string {
+        return AzureCognitiveService.COGNITIVE_SERVICE_TEMPLATE
+            .replace('{region}', this.options.region);
+    }
+
+    protected generateBody(fileName: string): CognitiveServiceBodyType {
         return {
             RecordingsUrl: this.getFileUrl(fileName),
             Locale: this.options.locale,
@@ -67,15 +72,14 @@ export class AzureCognitiveService implements ISpeechService {
         };
     }
 
-    public async toText(model: UploadFileModel): Promise<SpeechRecognitionModel | null> {
-        const url = this.getCognitiveServiceUrl();
-        const body = this.generateBody(model.name);
+    protected generateHeaders(): Record<string, string> {
+        return {
+            'Ocp-Apim-Subscription-Key': this.options.subscriptionKey,
+        };
+    }
 
-        const [response] = await this.httpRequestService.postRaw(url, body, {
-            headers: {
-                'Ocp-Apim-Subscription-Key': this.options.subscriptionKey,
-            }
-        });
+    public async toText(model: UploadFileModel): Promise<SpeechRecognitionModel | null> {
+        const [response] = await this.sendRequest(model);
 
         const location = response.headers?.location;
 
