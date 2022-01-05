@@ -1,6 +1,6 @@
 import { ILoggerService, INameGeneratorService } from '../interfaces';
 import { IBotService, SendMessageModel } from '../bot';
-import { IUploadService } from '../upload';
+import { IUploadService, UploadFileModel } from '../upload';
 import { ISpeechService } from '../speech';
 
 export class MessageService {
@@ -32,7 +32,8 @@ export class MessageService {
                 const file = await this.botService.downloadAudioFile(message);
 
                 const fileName = this.namgeGeneratorService.generate();
-                const uploadFileModel = await this.uploadService.upload(fileName, file);
+                const uploadFileModel = new UploadFileModel(fileName, fileName, file);
+                await this.uploadService.upload(uploadFileModel);
 
                 const speechRecognitionModel = await this.speechService.toText(uploadFileModel);
 
