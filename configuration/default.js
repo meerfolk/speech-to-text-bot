@@ -20,6 +20,14 @@ module.exports = {
                 subscriptionKey: process.env.AZURE_COGNITIVE_SUBSCRIPTION_KEY,
                 locale: process.env.AZURE_COGNITIVE_LOCALE,
             },
-        }
+        },
+        yandex: {
+            storage: {
+                id: process.env.YANDEX_STORAGE_KEY,
+                key: process.env.YANDEX_STORAGE_SECRET,
+                bucket: process.env.YANDEX_STORAGE_BUCKET,
+                region: process.env.YANDEX_STORAGE_REGION,
+            },
+        },
     }
 };
