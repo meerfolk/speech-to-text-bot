@@ -23,7 +23,13 @@ export class HttpRequestService implements IHttpRequestService {
     }
 
     private bufferToObj(buffer: Buffer): object {
-        return JSON.parse(buffer.toString('utf8'));
+        const str = buffer.toString('utf8');
+
+        if (!str) {
+            return {};
+        }
+
+        return JSON.parse(str);
     }
 
     private requestRaw(options: IRequestOptions): Promise<[IncomingMessage, Buffer]> {
