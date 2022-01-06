@@ -13,9 +13,10 @@ export abstract class BaseSpeechService<T extends object> {
     protected async sendRequest(model: UploadFileModel): Promise<[RawResponse, unknown]> {
         const url = this.getServiceUrl();
         const body = this.generateBody(model.name);
+        const headers = this.generateHeaders();
 
         const response = await this.httpRequestService.postRaw(url, body, {
-            headers: this.generateHeaders(),
+            headers,
         });
 
         return response;
