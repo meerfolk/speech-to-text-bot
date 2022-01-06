@@ -28,6 +28,9 @@ module.exports = {
                 bucket: process.env.YANDEX_STORAGE_BUCKET,
                 region: process.env.YANDEX_STORAGE_REGION,
             },
+            speechkit: {
+                apiKey: process.env.YANDEX_SPEECHKIT_API_KEY,
+            },
         },
     }
 };
